@@ -1,0 +1,57 @@
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# API keys and secrets (extra safety)
+config.py
+secrets.json
+keys.txt
+.env
+.dev.vars
+# Node deps
+node_modules/
+
+# Generated code / build output
+dist/
+build/
+.tmp/
+.cache/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env*
+.env.*             # local, test, etc
+
+# Editor and OS files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.DS_Store
+Thumbs.db
+
+# Cloudflare Workers state (if you use wrangler dev)
+.wrangler/state/
+
+# Coverage reports
+coverage/
+
+# Mac/Linux swap files, vim, etc
+*~
+*.swp

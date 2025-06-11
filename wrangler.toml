@@ -1,0 +1,14 @@
+name = "ai-overview-worker"
+main = "src/index.js"
+compatibility_date = "2025-06-11"
+
+[vars] 
+ENVIRONMENT = "default"
+LOG_LEVEL = "debug" 
+MAX_DOCS = "12"
+
+[env.preview.vars]
+ENVIRONMENT = "preview"
+[env.production.vars]
+ENVIRONMENT="production"
+
