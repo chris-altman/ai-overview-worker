@@ -1,7 +1,7 @@
 name = "ai-overview-worker"
-main = "src/index.js"
+main = "./src/index.js"
 compatibility_date = "2025-06-11"
-
+bucket="./src/templates/script.js"
 [vars] 
 ENVIRONMENT = "default"
 LOG_LEVEL = "debug" 
