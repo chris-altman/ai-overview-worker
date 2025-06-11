@@ -1,4 +1,3 @@
-
 const loading = document.getElementById('loading');
 const resultText = document.getElementById('resultText').textContent = data.openai_rewrite || 'No overview returned.';
 const results = document.getElementById('results');
