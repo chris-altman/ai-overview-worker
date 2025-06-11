@@ -190,7 +190,7 @@ export function getHomePage() {
             </div>
         </div>
     </div>
-<script src="src/templates/script.js"></script>
+<script src="/script.js"></script>
 </body>
 </html>
     `.trim();
