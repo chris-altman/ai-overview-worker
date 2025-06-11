@@ -255,13 +255,19 @@ export function getHomePage() {
             // Show raw overviews (if any)
             for (let snap of data.snapshots || []) {
                 if (snap.text?.trim()) {
-                    const box = document.createElement('div');
-                    box.className = 'result-content';
-                    box.style.marginBottom = '10px';
-                    box.innerHTML = '<strong>📍 Run ' + snap.run + ' Overview</strong><br><br>' + snap.text.replace(/\n/g, '<br>');
+                        const title = document.createElement('strong');
+                        title.textContent = \`📍 Run \${snap.run} Overview\`;
 
+                        const content = document.createElement('div');
+                        content.innerHTML = snap.text.replace(/\\n/g, '<br>');
 
-                    rawOverviewSection.appendChild(box);
+                        const box = document.createElement('div');
+                        box.className = 'result-content';
+                        box.style.marginBottom = '10px';
+                        box.appendChild(title);
+                        box.appendChild(document.createElement('br'));
+                        box.appendChild(document.createElement('br'));
+                        box.appendChild(content);                    rawOverviewSection.appendChild(box);
                 }
             }
 
