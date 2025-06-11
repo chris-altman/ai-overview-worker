@@ -192,7 +192,7 @@ export function getHomePage() {
     </div>
 <script>
     const loading = document.getElementById('loading');
-    const resultText = document.getElementById('resultText');
+    const resultText = document.getElementById('resultText').textContent = data.openai_rewrite || 'No overview returned.';
     const results = document.getElementById('results');
     const submitBtn = document.getElementById('submitBtn');
 
