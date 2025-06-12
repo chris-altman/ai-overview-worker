@@ -1,5 +1,5 @@
 import { getHomePage } from './templates/home.js';
-
+const scriptModule = require('./public/script.js');
 const DEFAULT_TIMEOUT = 15_000;
 const logBuf = [];
 
