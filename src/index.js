@@ -152,13 +152,18 @@ export default {
     /* ------------------  Static GET  ------------------ */
     if (request.method === 'GET') {
       const url = new URL(request.url);
-      if (url.pathname === '/' || url.pathname === '/index.html') {
-        return new Response(getHomePage(), { headers: { 'Content-Type': 'text/html' } });
+
+      // Manually allow static files
+      if (url.pathname === '/script.js') {
+        return fetch(url.toString());
       }
 
-  // Let Wrangler serve static files like /script.js
-        return await env.ASSETS.fetch(request);
-  }
+      // Serve HTML homepage
+      return new Response(getHomePage(), {
+        headers: { 'Content-Type': 'text/html' }
+      });
+    }
+
 
     /* ------------------  API POST  -------------------- */
     if (request.method === 'POST') {

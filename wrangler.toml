@@ -5,19 +5,6 @@ compatibility_date = "2025-06-11"
 [site]
 bucket = "src/public"  
 
-[build.upload]
-format = "modules"
-
-[durable_objects]
-bindings = []
-
-[wasm_modules]
-bindings = []
-
-[bindings]
-type = "static_asset"
-name = "ASSETS"
-
 
 [vars] 
 ENVIRONMENT = "default"
