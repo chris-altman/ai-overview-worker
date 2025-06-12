@@ -2,10 +2,6 @@ name = "ai-overview-worker"
 main = "src/index.js"
 compatibility_date = "2025-06-11"
 
-[site]
-bucket = "src/public"  
-
-
 [vars] 
 ENVIRONMENT = "default"
 LOG_LEVEL = "debug" 
