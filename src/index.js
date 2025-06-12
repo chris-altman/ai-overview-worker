@@ -123,8 +123,20 @@ const reduceSnapshots = arr =>
     ? arr.reduce((a, b) => (b.length > a.length ? b : a))
     : '';
 
-const buildPrompt = txt =>
-  `Rewrite the following Google AI Overview in a fresh, human voice. Keep all key facts, avoid plagiarism, limit to 1-3 short paragraphs.\n\nAI Overview:\n${txt}\n\nRewritten version:`;
+const buildPromptWithOverviews = (overviews) =>
+  `Rewrite and consolidate the following Google AI Overviews into a comprehensive, human-friendly answer. Keep all key facts, avoid plagiarism, limit to 2-3 well-structured paragraphs.
+
+AI Overviews:
+${overviews}
+
+Consolidated answer:`;
+
+const buildPromptWithoutOverviews = (keyword) =>
+  `Create a comprehensive, informative answer for the search query: "${keyword}"
+
+Provide a helpful, accurate response that covers the most important aspects someone would want to know about this topic. Structure your response in 2-3 well-organized paragraphs. Be factual and helpful.
+
+Answer:`;
 
 export default {
   async fetch(request, env) {
@@ -138,10 +150,9 @@ export default {
       }
 
       // Serve static files (like script.js)
-    
-    if (url.pathname === '/script.js') {
-      return env.ASSETS.fetch(request);
-    }
+      if (url.pathname === '/script.js') {
+        return env.ASSETS.fetch(request);
+      }
 
       return new Response('Not Found', { status: 404 });
     }
@@ -169,38 +180,45 @@ export default {
           snapshots.map(s => s.text).filter(Boolean)
         );
 
-        if (!consensus) {
-          log('⚠️  No AI Overview in any snapshot.');
-          return new Response(
-            JSON.stringify(
-              { keyword, snapshots, consensus: '', openai_rewrite: '', logs: logBuf },
-              null,
-              2
-            ),
-            { headers: { 'Content-Type': 'application/json' } }
-          );
+        let openai_rewrite = '';
+        let prompt = '';
+
+        if (consensus) {
+          log('📌 Consensus obtained, consolidating AI Overviews...');
+          prompt = buildPromptWithOverviews(consensus);
+        } else {
+          log('⚠️  No AI Overview detected, generating ideal answer...');
+          prompt = buildPromptWithoutOverviews(keyword);
         }
 
-        log('📌 Consensus obtained:', consensus.slice(0, 120), '…');
+        try {
+          const completion = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${env.OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [{ role: 'user', content: prompt }],
+              max_tokens: 1000,
+              temperature: 0.7
+            }),
+            signal: AbortSignal.timeout(DEFAULT_TIMEOUT)
+          });
 
-        const completion = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${env.OPENAI_API_KEY}`
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [{ role: 'user', content: buildPrompt(consensus) }],
-            max_tokens: 1000,
-            temperature: 0.7
-          }),
-          signal: AbortSignal.timeout(DEFAULT_TIMEOUT)
-        });
-
-        const compData = await safeJson(completion, 'OpenAI');
-        const openai_rewrite = compData.choices?.[0]?.message?.content.trim() || '';
-        log('✨ OpenAI rewrite received:', openai_rewrite.slice(0, 120), '…');
+          const compData = await safeJson(completion, 'OpenAI');
+          openai_rewrite = compData.choices?.[0]?.message?.content.trim() || '';
+          
+          if (consensus) {
+            log('✨ Consolidated answer generated:', openai_rewrite.slice(0, 120), '…');
+          } else {
+            log('🤖 Ideal answer generated:', openai_rewrite.slice(0, 120), '…');
+          }
+        } catch (openaiError) {
+          log('❌ OpenAI Error:', openaiError.message);
+          openai_rewrite = consensus || 'Unable to generate an answer at this time.';
+        }
 
         return new Response(
           JSON.stringify(
