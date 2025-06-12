@@ -1,21 +1,14 @@
 import { getHomePage } from './templates/home.js';
 
-const DEFAULT_TIMEOUT = 15_000;            // 15 s
-
-/*------------------------------------------------------------------*/
-/* 1.  In-memory log buffer + helper                                */
-/*------------------------------------------------------------------*/
+const DEFAULT_TIMEOUT = 15_000;
 const logBuf = [];
 
 function log(...args) {
   const line = args.map(String).join(' ');
-  console.log(line);        // still prints to Wrangler
-  logBuf.push(line);        // …and stores for the response
+  console.log(line);
+  logBuf.push(line);
 }
 
-/*------------------------------------------------------------------*/
-/* 2.  Utility: ensure we only parse JSON                           */
-/*------------------------------------------------------------------*/
 async function safeJson(res, label) {
   const ct = res.headers.get('content-type') || '';
   if (!ct.includes('application/json')) {
@@ -25,9 +18,6 @@ async function safeJson(res, label) {
   return res.json();
 }
 
-/*------------------------------------------------------------------*/
-/* 3.  Helpers: flatten AIO blocks → plain text                     */
-/*------------------------------------------------------------------*/
 function blocksToText(blocks) {
   if (!Array.isArray(blocks)) return '';
 
@@ -67,9 +57,6 @@ function blocksToText(blocks) {
     .trim();
 }
 
-/*------------------------------------------------------------------*/
-/* 4.  One SerpAPI attempt                                          */
-/*------------------------------------------------------------------*/
 async function fetchAiOverviewOnce(keyword, gl, env, run) {
   log(`🔍 Run ${run}: Fetching AI Overview for "${keyword}" (gl=${gl})`);
   try {
@@ -97,10 +84,8 @@ async function fetchAiOverviewOnce(keyword, gl, env, run) {
       return null;
     }
 
-    /* direct-text path */
     if (Array.isArray(aio.text_blocks)) return blocksToText(aio.text_blocks);
 
-    /* two-step stream path */
     if (!aio.page_token) {
       log(`⚠️  Run ${run}: no page_token`);
       return null;
@@ -133,9 +118,6 @@ async function fetchAiOverviewOnce(keyword, gl, env, run) {
   }
 }
 
-/*------------------------------------------------------------------*/
-/* 5.  Reduce snapshots → longest unique                            */
-/*------------------------------------------------------------------*/
 const reduceSnapshots = arr =>
   arr.length
     ? arr.reduce((a, b) => (b.length > a.length ? b : a))
@@ -144,30 +126,21 @@ const reduceSnapshots = arr =>
 const buildPrompt = txt =>
   `Rewrite the following Google AI Overview in a fresh, human voice. Keep all key facts, avoid plagiarism, limit to 1-3 short paragraphs.\n\nAI Overview:\n${txt}\n\nRewritten version:`;
 
-/*------------------------------------------------------------------*/
-/* 6.  Worker export                                                */
-/*------------------------------------------------------------------*/
 export default {
   async fetch(request, env) {
-    /* ------------------  Static GET  ------------------ */
-    if (request.method === 'GET') {
-      const url = new URL(request.url);
+    const url = new URL(request.url);
 
-      // Manually allow static files
-      if (url.pathname === '/script.js') {
-        return fetch(url.toString());
+    if (request.method === 'GET') {
+      if (url.pathname === '/' || url.pathname === '/index.html') {
+        return new Response(getHomePage(), {
+          headers: { 'Content-Type': 'text/html' }
+        });
       }
 
-      // Serve HTML homepage
-      return new Response(getHomePage(), {
-        headers: { 'Content-Type': 'text/html' }
-      });
+      return fetch(url.toString(), request);
     }
 
-
-    /* ------------------  API POST  -------------------- */
     if (request.method === 'POST') {
-      /* reset per-request log buffer */
       logBuf.length = 0;
 
       try {
@@ -180,7 +153,6 @@ export default {
 
         log(`🚀 Starting runs (${iterations}) for "${keyword}", gl=${gl}`);
 
-        /* snapshots */
         const snapshots = [];
         for (let i = 1; i <= iterations; i++) {
           const txt = await fetchAiOverviewOnce(keyword, gl, env, i);
@@ -191,7 +163,6 @@ export default {
           snapshots.map(s => s.text).filter(Boolean)
         );
 
-        /* ----------  No consensus: early return  ---------- */
         if (!consensus) {
           log('⚠️  No AI Overview in any snapshot.');
           return new Response(
@@ -206,7 +177,6 @@ export default {
 
         log('📌 Consensus obtained:', consensus.slice(0, 120), '…');
 
-        /* ----------  OpenAI rewrite  ---------- */
         const completion = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -243,7 +213,6 @@ export default {
       }
     }
 
-    /* ------------------  Fallback ---------------------- */
     return new Response('Method Not Allowed', { status: 405 });
   }
-};
+}
