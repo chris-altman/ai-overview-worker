@@ -1,5 +1,5 @@
 import { getHomePage } from './templates/home.js';
-const scriptModule = require('./public/script.js');
+// REMOVED: const scriptModule = require('./public/script.js'); // This was causing the error
 const DEFAULT_TIMEOUT = 15_000;
 const logBuf = [];
 
@@ -137,7 +137,13 @@ export default {
         });
       }
 
-      return fetch(url.toString(), request);
+      // Serve static files (like script.js)
+    
+    if (url.pathname === '/script.js') {
+      return env.ASSETS.fetch(request);
+    }
+
+      return new Response('Not Found', { status: 404 });
     }
 
     if (request.method === 'POST') {

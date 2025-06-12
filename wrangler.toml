@@ -2,6 +2,10 @@ name = "ai-overview-worker"
 main = "src/index.js"
 compatibility_date = "2025-06-11"
 
+[assets]
+directory = "./src/public"
+binding = "ASSETS"
+
 [vars] 
 ENVIRONMENT = "default"
 LOG_LEVEL = "debug" 
