@@ -63,7 +63,7 @@ document.getElementById('aiForm').addEventListener('submit', async function (e) 
         for (let snap of data.snapshots || []) {
             if (snap.text?.trim()) {
                     const title = document.createElement('strong');
-                    title.textContent = \`📍 Run \${snap.run} Overview\`;
+                    title.textContent = `📍 Run ${snap.run} Overview`;
 
                     const content = document.createElement('div');
                     content.innerHTML = snap.text.replace(/\\n/g, '<br>');
