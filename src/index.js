@@ -151,8 +151,14 @@ export default {
   async fetch(request, env) {
     /* ------------------  Static GET  ------------------ */
     if (request.method === 'GET') {
-      return new Response(getHomePage(), { headers: { 'Content-Type': 'text/html' } });
-    }
+      const url = new URL(request.url);
+      if (url.pathname === '/' || url.pathname === '/index.html') {
+        return new Response(getHomePage(), { headers: { 'Content-Type': 'text/html' } });
+      }
+
+  // Let Wrangler serve static files like /script.js
+        return await env.ASSETS.fetch(request);
+  }
 
     /* ------------------  API POST  -------------------- */
     if (request.method === 'POST') {
